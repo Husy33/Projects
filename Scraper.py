@@ -6,12 +6,10 @@ headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/
 response = requests.get(url, headers=headers)
 soup = BeautifulSoup(response.text, "html.parser")
 
-# Get the first paragraph
 intro = soup.find("div", id="mw-content-text").find("p")
 print("=== INTRO ===")
 print(intro.text)
 
-# Get infobox facts
 infobox = soup.find("table", class_="infobox")
 rows = infobox.find_all("tr")
 
