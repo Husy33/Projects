@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bill Splitter</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #08080c;
+    --surface: #0e0e14;
+    --border: #1c1c26;
+    --accent: #2dd4f0;
+    --text: #e8e8ed;
+    --muted: #7a7a8c;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .card { width: 100%; max-width: 460px; }
+
+  .back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-decoration: none;
+    margin-bottom: 1.5rem;
+  }
+
+  .back-link:hover { color: var(--text); }
+
+  h1 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.4rem;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .mode-switch {
+    display: flex;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 4px;
+    margin-bottom: 1.5rem;
+  }
+
+  .mode-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.6rem 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .mode-btn.active { background: var(--accent); color: #05070a; }
+
+  .tool-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.8rem;
+    background: var(--surface);
+  }
+
+  .tool-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .tool-field label {
+    display: block;
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 0.4rem;
+  }
+
+  .tool-field input[type="number"],
+  .tool-field input[type="text"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.65rem 0.8rem;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  .tool-field input:focus { border-color: var(--accent); }
+
+  .tool-toggles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+    margin-bottom: 1.4rem;
+    padding-bottom: 1.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .toggle-row { display: flex; align-items: center; gap: 0.6rem; }
+
+  .toggle-row input[type="checkbox"] {
+    width: 16px; height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
+
+  .toggle-row input[type="number"] {
+    width: 70px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    outline: none;
+  }
+
+  .toggle-row label { font-size: 0.85rem; color: var(--muted); cursor: pointer; }
+
+  .tool-result {
+    padding-top: 0.2rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .tool-result-item .label { font-size: 0.75rem; color: var(--muted); margin-bottom: 0.3rem; }
+
+  .tool-result-item .value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .order-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    margin-bottom: 1rem;
+  }
+
+  .order-row { display: flex; align-items: center; gap: 0.6rem; }
+  .order-row input[type="text"] { flex: 1.2; }
+  .order-row input[type="number"] { flex: 1; }
+
+  .order-row .remove-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .order-row .remove-btn:hover { border-color: #ff6b6b; color: #ff6b6b; }
+
+  .add-person-btn {
+    width: 100%;
+    background: none;
+    border: 1px dashed var(--border);
+    color: var(--muted);
+    padding: 0.6rem;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    margin-bottom: 1.4rem;
+    transition: border-color 0.15s, color 0.15s;
+  }
+
+  .add-person-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .order-results {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .order-result-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .order-result-row:last-child { border-bottom: none; }
+  .order-result-row .name { color: var(--muted); }
+
+  .order-result-row .amount {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <a class="back-link" href="https://husy33.github.io">← Back to portfolio</a>
+  <h1>Bill Splitter</h1>
+  <p class="subtitle">Split evenly, or let everyone pay for what they ordered.</p>
+
+  <div class="mode-switch">
+    <button class="mode-btn active" id="equalTab" onclick="switchMode('equal')">Split Equally</button>
+    <button class="mode-btn" id="orderTab" onclick="switchMode('order')">Split by Order</button>
+  </div>
+
+  <div class="tool-card" id="equalMode">
+    <div class="tool-grid">
+      <div class="tool-field">
+        <label for="billAmount">Bill total (PKR)</label>
+        <input type="number" id="billAmount" placeholder="0" min="0" oninput="calculateEqual()">
+      </div>
+      <div class="tool-field">
+        <label for="peopleCount">Number of people</label>
+        <input type="number" id="peopleCount" placeholder="1" min="1" value="1" oninput="calculateEqual()">
+      </div>
+    </div>
+
+    <div class="tool-toggles">
+      <div class="toggle-row">
+        <input type="checkbox" id="gstToggle" onchange="calculateEqual()">
+        <label for="gstToggle">Add GST</label>
+        <input type="number" id="gstRate" value="17" min="0" max="100" oninput="calculateEqual()">
+        <label for="gstRate">%</label>
+      </div>
+      <div class="toggle-row">
+        <input type="checkbox" id="tipToggle" onchange="calculateEqual()">
+        <label for="tipToggle">Add tip</label>
+        <input type="number" id="tipRate" value="10" min="0" max="100" oninput="calculateEqual()">
+        <label for="tipRate">%</label>
+      </div>
+    </div>
+
+    <div class="tool-result">
+      <div class="tool-result-item">
+        <div class="label">Total bill</div>
+        <div class="value" id="totalBill">Rs 0</div>
+      </div>
+      <div class="tool-result-item">
+        <div class="label">Per person</div>
+        <div class="value" id="perPerson">Rs 0</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tool-card hidden" id="orderMode">
+    <div class="order-list" id="orderList"></div>
+
+    <button class="add-person-btn" onclick="addPerson()">+ Add person</button>
+
+    <div class="tool-toggles">
+      <div class="toggle-row">
+        <input type="checkbox" id="gstToggleOrder" onchange="calculateOrder()">
+        <label for="gstToggleOrder">Add GST</label>
+        <input type="number" id="gstRateOrder" value="17" min="0" max="100" oninput="calculateOrder()">
+        <label for="gstRateOrder">%</label>
+      </div>
+      <div class="toggle-row">
+        <input type="checkbox" id="tipToggleOrder" onchange="calculateOrder()">
+        <label for="tipToggleOrder">Add tip</label>
+        <input type="number" id="tipRateOrder" value="10" min="0" max="100" oninput="calculateOrder()">
+        <label for="tipRateOrder">%</label>
+      </div>
+    </div>
+
+    <div class="order-results" id="orderResults"></div>
+
+    <div class="tool-result">
+      <div class="tool-result-item">
+        <div class="label">Total bill</div>
+        <div class="value" id="orderTotalBill">Rs 0</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  let personCount = 0;
+
+  function switchMode(mode) {
+    document.getElementById('equalTab').classList.toggle('active', mode === 'equal');
+    document.getElementById('orderTab').classList.toggle('active', mode === 'order');
+    document.getElementById('equalMode').classList.toggle('hidden', mode !== 'equal');
+    document.getElementById('orderMode').classList.toggle('hidden', mode !== 'order');
+  }
+
+  function calculateEqual() {
+    const bill = parseFloat(document.getElementById('billAmount').value) || 0;
+    const people = parseFloat(document.getElementById('peopleCount').value) || 1;
+    const gstOn = document.getElementById('gstToggle').checked;
+    const tipOn = document.getElementById('tipToggle').checked;
+    const gstRate = parseFloat(document.getElementById('gstRate').value) || 0;
+    const tipRate = parseFloat(document.getElementById('tipRate').value) || 0;
+
+    let total = bill;
+    if (gstOn) total += bill * (gstRate / 100);
+    if (tipOn) total += bill * (tipRate / 100);
+
+    const perPerson = total / people;
+
+    document.getElementById('totalBill').textContent = 'Rs ' + total.toFixed(0);
+    document.getElementById('perPerson').textContent = 'Rs ' + perPerson.toFixed(0);
+  }
+
+  function addPerson() {
+    personCount++;
+    const list = document.getElementById('orderList');
+    const row = document.createElement('div');
+    row.className = 'order-row';
+    row.id = 'person-' + personCount;
+    row.innerHTML = `
+      <input type="text" placeholder="Name" value="Person ${personCount}" oninput="calculateOrder()">
+      <input type="number" placeholder="Amount ordered" min="0" oninput="calculateOrder()">
+      <button class="remove-btn" onclick="removePerson('person-${personCount}')">✕</button>
+    `;
+    list.appendChild(row);
+    calculateOrder();
+  }
+
+  function removePerson(id) {
+    document.getElementById(id).remove();
+    calculateOrder();
+  }
+
+  function calculateOrder() {
+    const rows = document.querySelectorAll('#orderList .order-row');
+    const gstOn = document.getElementById('gstToggleOrder').checked;
+    const tipOn = document.getElementById('tipToggleOrder').checked;
+    const gstRate = parseFloat(document.getElementById('gstRateOrder').value) || 0;
+    const tipRate = parseFloat(document.getElementById('tipRateOrder').value) || 0;
+
+    const resultsDiv = document.getElementById('orderResults');
+    resultsDiv.innerHTML = '';
+
+    let grandTotal = 0;
+
+    rows.forEach(row => {
+      const inputs = row.querySelectorAll('input');
+      const name = inputs[0].value || 'Person';
+      const amount = parseFloat(inputs[1].value) || 0;
+
+      let personTotal = amount;
+      if (gstOn) personTotal += amount * (gstRate / 100);
+      if (tipOn) personTotal += amount * (tipRate / 100);
+
+      grandTotal += personTotal;
+
+      const resultRow = document.createElement('div');
+      resultRow.className = 'order-result-row';
+      resultRow.innerHTML = `<span class="name">${name}</span><span class="amount">Rs ${personTotal.toFixed(0)}</span>`;
+      resultsDiv.appendChild(resultRow);
+    });
+
+    document.getElementById('orderTotalBill').textContent = 'Rs ' + grandTotal.toFixed(0);
+  }
+
+  addPerson();
+  addPerson();
+</script>
+
+</body>
+</html>
